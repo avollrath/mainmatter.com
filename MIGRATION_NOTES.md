@@ -27,3 +27,9 @@
 - Keep existing Markdown frontmatter and route formulas.
 - Recreate Eleventy collection behavior in Astro with shared helpers before deleting legacy Eleventy files.
 - Use generated route comparison between legacy `dist` and Astro `dist` during validation.
+
+## Current Status
+
+- Astro renders all legacy content routes through `astro/lib/site-renderer.mjs`.
+- Legacy route comparison: 456 Eleventy routes and 456 Astro routes, with no missing or extra routes.
+- Eleventy filters, shortcodes, collections, pagination, RSS, Atom, sitemap, and content transforms have Astro renderer equivalents.
