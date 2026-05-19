@@ -2,7 +2,7 @@
  * Look up a post in a collection by its slug.
  * @param {collection} collection The collection to look in
  * @param {string} slug The post slug to look up.
- * @return {Object} An eleventy collection item.
+ * @return {Object} A collection item.
  */
 export function findByCollectionSlug(collection, slug) {
   if (!collection) {

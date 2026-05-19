@@ -1,20 +1,20 @@
 # Contributing / Development
 
-Make sure you have `node` and `pnpm` via [volta](https://volta.sh).
+Make sure you have `node` and `npm` via [volta](https://volta.sh).
 
 ```sh
 # Build and launch local preview server
-pnpm run dev
+npm run dev
 
 # Static build
-pnpm run build
+npm run build
 
 # Astro diagnostics
-pnpm run check
+npm run check
 
 # Lint files
-pnpm run lint
+npm run lint
 
 # Fix formatting and linting
-pnpm run fix
+npm run fix
 ```

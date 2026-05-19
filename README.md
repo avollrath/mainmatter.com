@@ -5,15 +5,15 @@ The source code for [https://mainmatter.com](https://mainmatter.com).
 ## Development
 
 ```sh
-pnpm install
-pnpm run dev
+npm install
+npm run dev
 ```
 
 ## Build
 
 ```sh
-pnpm run build
-pnpm run check
+npm run build
+npm run check
 ```
 
 ## Copyright

@@ -35,3 +35,5 @@
 - Eleventy filters, shortcodes, collections, pagination, RSS, Atom, sitemap, and content transforms have Astro renderer equivalents.
 - Validation found no generated-route drift. Remaining local-looking missing refs are literal code examples in historical blog posts, not site navigation links.
 - Legacy Eleventy config, runtime plugins, and unused transforms were removed after Astro production build passed.
+- Package manager switched to npm. `package-lock.json` is the canonical lockfile and `pnpm-lock.yaml` was removed.
+- Responsive image generation now uses local Sharp helpers instead of `@11ty/eleventy-img`.

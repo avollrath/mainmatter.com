@@ -11,25 +11,24 @@
     "lint:sass:fix": "prettier --write **/*.scss",
     "lint:njk": "prettier --check **/*.njk",
     "lint:njk:fix": "prettier --write **/*.njk",
-    "lint": "pnpm run --parallel \"/^lint:[^:]+$/\"",
-    "fix": "pnpm run --parallel \"/^lint:.+:fix$/\"",
-    "build": "pnpm run build:html && pnpm run build:sass && pnpm run build:js",
+    "lint": "npm run lint:js && npm run lint:md && npm run lint:sass && npm run lint:njk",
+    "fix": "npm run lint:js:fix && npm run lint:md:fix && npm run lint:sass:fix && npm run lint:njk:fix",
+    "build": "npm run build:html && npm run build:sass && npm run build:js",
     "build:html": "astro build",
     "build:js": "rollup --config ./rollup.config.mjs",
     "build:sass": "sass src/assets/css/app.scss ./dist/assets/css/app.css --style=compressed",
     "check": "astro check",
-    "dev": "pnpm run build && astro preview --host 0.0.0.0",
+    "dev": "npm run build && astro preview --host 0.0.0.0",
     "watch:js": "rollup --config ./rollup.config.mjs --watch",
     "watch:sass": "sass src/assets/css/app.scss ./dist/assets/css/app.css --style=compressed --watch",
-    "watch": "pnpm run --parallel \"/^watch:/\"",
-    "percy:build": "pnpm run build && pnpm run percy:disable-lazy-images",
+    "watch": "npm run watch:sass",
+    "percy:build": "npm run build && npm run percy:disable-lazy-images",
     "percy:disable-lazy-images": "replace-in-file --configFile=.percy-disable-lazy-loading.js",
     "percy": "percy snapshot",
     "crawl": "node scripts/crawl.js",
     "this-week": "twios/this-week-in-open-source --config-path=config/this-week-in-open-source.config.json"
   },
   "devDependencies": {
-    "@11ty/eleventy-img": "^6.0.4",
     "@astrojs/check": "^0.9.9",
     "@lhci/cli": "^0.14.0",
     "@percy/cli": "^1.31.12",
@@ -56,6 +55,7 @@
     "replace-in-file": "^7.2.0",
     "rollup": "^4.60.2",
     "sass": "^1.99.0",
+    "sharp": "^0.34.5",
     "slugify": "1.6.6",
     "svgo": "^3.3.3",
     "typescript": "^6.0.3",
@@ -76,8 +76,7 @@
     "node": ">=20"
   },
   "volta": {
-    "node": "22.15.0",
-    "pnpm": "9.15.4"
+    "node": "22.15.0"
   },
-  "packageManager": "pnpm@9.15.4"
+  "packageManager": "npm@11.7.0"
 }

@@ -1,6 +1,6 @@
 module.exports = {
   layout: "post",
-  eleventyComputed: {
+  computed: {
     permalink: function (data) {
       return (
         "/blog/" +

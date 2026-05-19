@@ -13,11 +13,11 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import slugify from "slugify";
 import { optimize } from "svgo";
-import Image from "@11ty/eleventy-img";
 
 import contentParser from "../../utils/transforms/contentParser.js";
 
 const require = createRequire(import.meta.url);
+const { renderResponsiveImage } = require("../../utils/responsiveImage.js");
 const rootDir = process.cwd();
 const srcDir = path.join(rootDir, "src");
 const componentsDir = path.join(srcDir, "components");
@@ -96,7 +96,7 @@ async function loadItems(globalData) {
       "src/assets/**",
       "src/components/**",
       "src/_data/**",
-      "src/**/*.11tydata.js",
+      "src/**/*.data.js",
       "src/**/*.og.njk",
     ],
   });
@@ -148,7 +148,7 @@ async function loadItems(globalData) {
 }
 
 function loadDirectoryData(directory) {
-  const dataFile = path.join(directory, `${path.basename(directory)}.11tydata.js`);
+  const dataFile = path.join(directory, `${path.basename(directory)}.data.js`);
   if (!fs.existsSync(dataFile)) {
     return {};
   }
@@ -207,7 +207,7 @@ function createEnvironment({ collections, globalData, imageJobs, memo, outDir })
 
   let activeItem = null;
 
-  env.addGlobal("eleventy", { env: { runMode: "build" } });
+  env.addGlobal("site", { env: { runMode: "build" } });
   env.addGlobal("setActiveItem", item => {
     activeItem = item;
   });
@@ -288,10 +288,10 @@ function createEnvironment({ collections, globalData, imageJobs, memo, outDir })
     (collection || []).find(item => item.inputPath === page?.inputPath || item.url === page?.url)
   );
   env.addFilter("nl2br", value => String(value || "").replace(/\n/g, "<br>\n"));
-  env.addFilter("eleventyNavigation", collection =>
+  env.addFilter("navigationEntries", collection =>
     (collection || [])
-      .filter(item => item.data.eleventyNavigation && item.url)
-      .map(item => ({ ...item.data.eleventyNavigation, url: item.url }))
+      .filter(item => item.data.navigation && item.url)
+      .map(item => ({ ...item.data.navigation, url: item.url }))
       .sort((a, b) => (a.order || 0) - (b.order || 0))
   );
 
@@ -452,7 +452,7 @@ function collectLayoutData(layout) {
 }
 
 function applyComputedData(item, extraData, collections, globalData, env) {
-  const computed = item.data.eleventyComputed || {};
+  const computed = item.data.computed || {};
   for (const [key, value] of Object.entries(computed)) {
     if (typeof value === "string") {
       extraData[key] = env
@@ -473,7 +473,7 @@ function computeUrl(item, globalData, extraData) {
   ) {
     return null;
   }
-  if (item.data.eleventyComputed?.permalink) {
+  if (item.data.computed?.permalink) {
     return normalizeUrl(computeKnownPermalink(item, extraData));
   }
   if (typeof item.data.permalink === "string") {
@@ -579,7 +579,7 @@ function filterByGlob(items, pattern) {
 function preprocessTemplate(source) {
   return source
     .replace(/\{%-?\s*setAsync[\s\S]*?\{%-?\s*endsetAsync\s*-?%\}/g, "")
-    .replace(/autoOg and eleventy\.env\.runMode === "build"/g, "false")
+    .replace(/autoOg and site\.env\.runMode === "build"/g, "false")
     .replace(/\{%-?\s*elseif\b/g, "{% elif")
     .replace(/\{%-?\s*jsonLdScript\s+([^%]+?)\s*-?%\}/g, "{{ jsonLdScript($1) | safe }}")
     .replace(/\{%-?\s*image\s+([^%]+?)\s*-?%\}/g, "{{ __imageShortcode($1) | safe }}")
@@ -612,25 +612,19 @@ function renderImage({ imgPath, alt, sizes, loading, className, sizesArray, imag
   const directory = path.dirname(imgPath).replace(/\\/g, "/");
   const formats = ["webp", ...(fileType !== "gif" ? [fileType] : [])];
   const widths = sizesArray || [720, 1024, 1440];
-  const options = {
-    svgShortCircuit: true,
-    widths,
-    formats,
+  return renderResponsiveImage({
+    srcPath: url,
     urlPath: directory,
     outputDir: path.join(outDir, directory),
-    filenameFormat: function (_id, _src, width, format) {
-      const extension = path.extname(imgPath);
-      const name = path.basename(imgPath, extension);
-      return `${name}@${width}.${format}`;
+    widths,
+    formats,
+    attributes: {
+      class: className,
+      alt,
+      sizes: sizes || "100vw",
+      loading,
     },
-  };
-  const stats = Image.statsSync(url, options);
-  imageJobs.push(Image(url, options));
-  return Image.generateHTML(stats, {
-    class: className,
-    alt,
-    sizes: sizes || "100vw",
-    loading,
+    imageJobs,
   });
 }
 

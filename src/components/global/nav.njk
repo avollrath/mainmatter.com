@@ -1,6 +1,6 @@
 {% from "social-list.njk" import socialList %}
 {% from "btn-primary.njk" import btnPrimary %}
-{% set navPages = collections.all | eleventyNavigation %}
+{% set navPages = collections.all | navigationEntries %}
 
 {% if page.url == '/services/workshops/rust/' or page.url == '/playbook/' %}
   {% set ctaColor = 'purple' %}

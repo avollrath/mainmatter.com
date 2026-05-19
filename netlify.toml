@@ -5,7 +5,7 @@
 
 [build]
   environment = { NODE_VERSION = "22.13.0" }
-  command = "echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> .npmrc && pnpm install && pnpm build"
+  command = "echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' >> .npmrc && npm ci && npm run build"
 
 # serve 404 simplabs' sitemap
   [[redirects]]

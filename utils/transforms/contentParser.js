@@ -3,7 +3,7 @@ const { JSDOM } = jsdom;
 const slugify = require("slugify");
 const path = require("path");
 const config = require("../../src/_data/config.js");
-const Image = require("@11ty/eleventy-img");
+const { renderResponsiveImage } = require("../responsiveImage.js");
 
 module.exports = async function (value, outputPath) {
   if (outputPath && path.extname(outputPath) === ".html") {
@@ -88,6 +88,7 @@ module.exports = async function (value, outputPath) {
      */
     const images = [...document.querySelectorAll("article img")];
     if (images.length) {
+      const imageJobs = [];
       for (const image of images) {
         if (image.classList.length > 0) {
           continue;
@@ -128,31 +129,23 @@ module.exports = async function (value, outputPath) {
           };
         }
 
-        let url = "./static" + imageData.src;
-        const options = {
-          svgShortCircuit: true,
+        const html = renderResponsiveImage({
+          srcPath: path.join(".", "static", imageData.src),
+          urlPath: imageData.directory,
+          outputDir: path.join(".", "dist", imageData.directory),
           widths: sizes,
           formats,
           sharpOptions,
-          urlPath: imageData.directory,
-          outputDir: "./dist/" + imageData.directory,
-          filenameFormat: function (id, src, width, format) {
-            const extension = path.extname(imageData.src);
-            const name = path.basename(imageData.src, extension);
-            return `${name}@${width}.${format}`;
+          attributes: {
+            alt,
+            sizes: "@media (min-width: 62em) 48.438rem, 90vw",
+            loading: "lazy",
+            decoding: "async",
           },
-        };
-        let stats = Image.statsSync(url, options);
-        await Image(url, options);
+          imageJobs,
+        });
 
-        let imageAttributes = {
-          alt,
-          sizes: "@media (min-width: 62em) 48.438rem, 90vw",
-          loading: "lazy",
-          decoding: "async",
-        };
-
-        let newImage = JSDOM.fragment(Image.generateHTML(stats, imageAttributes));
+        let newImage = JSDOM.fragment(html);
 
         if (imgClass) {
           newImage.firstElementChild.classList.add(imgClass);
@@ -160,6 +153,7 @@ module.exports = async function (value, outputPath) {
 
         image.replaceWith(newImage);
       }
+      await Promise.all(imageJobs);
     }
 
     // Unwrap our images

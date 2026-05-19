@@ -3,12 +3,12 @@
 let memo;
 
 /**
- * Memoize an eleventy collection into a hash for faster lookups.
+ * Memoize a collection into a hash for faster lookups.
  * Important: Memoization assumes that all post slugs are unique.
- * @param {Array<Object>} collection An eleventy collection.
+ * @param {Array<Object>} collection A collection.
  * Typically collections.all
  * @return {Array<Object>} The original collection. We return this to make
- * eleventy.addCollection happy since it expects a collection of some kind.
+ * the collection API happy since it expects a collection of some kind.
  */
 const memoize = collection => {
   if (memo && Object.keys(memo).length) {
@@ -24,7 +24,7 @@ const memoize = collection => {
     memo[item.template.parsed.name] = item;
   });
 
-  // Just return the collection back to eleventy.
+  // Return the collection unchanged.
   return collection;
 };
 
@@ -32,7 +32,7 @@ const memoize = collection => {
  * Look up a post by its slug.
  * Requires that the collection the post lives in has already been memoized.
  * @param {string} slug The post slug to look up.
- * @return {Object} An eleventy collection item.
+ * @return {Object} A collection item.
  */
 const findBySlug = slug => {
   if (!slug) {

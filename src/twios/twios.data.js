@@ -1,6 +1,6 @@
 module.exports = {
   layout: "twios-post",
-  eleventyComputed: {
+  computed: {
     title: function (data) {
       const post = data.collections.twios.find(post => post.fileSlug === data.page.fileSlug);
       const number = post?.data?.number;

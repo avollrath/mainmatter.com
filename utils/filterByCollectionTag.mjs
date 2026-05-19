@@ -2,7 +2,7 @@
  * Look up a post in a collection by a specific tag.
  * @param {collection} collection The collection to look in
  * @param {string} tag The post tag to look up.
- * @return {Array} An array of eleventy collection item.
+ * @return {Array} An array of collection items.
  */
 export function filterByCollectionTag(collection, tag) {
   if (!collection) {

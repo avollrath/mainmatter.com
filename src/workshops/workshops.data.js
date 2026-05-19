@@ -1,6 +1,6 @@
 module.exports = {
   layout: "workshop",
-  eleventyComputed: {
+  computed: {
     permalink: function (data) {
       return `/services/workshops/${data.page.fileSlug}/`;
     },
