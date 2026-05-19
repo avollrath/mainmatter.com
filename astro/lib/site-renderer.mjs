@@ -477,21 +477,19 @@ function computeUrl(item, globalData, extraData) {
 
 function computeKnownPermalink(item) {
   if (item.srcRelative.startsWith("posts/")) {
-    return (
-      "/blog/" +
-      item.page.inputPath
-        .replace(/(.+\/)(\d+)-(\d+)-(\d+)-(.+(?=\.))/, "$2/$3/$4/$5")
-        .replace(".md", "/")
-    );
+    const [, year, month, day, slug] = path
+      .basename(item.filePath, path.extname(item.filePath))
+      .match(/^(\d{4})-(\d{2})-(\d{2})-(.+)$/);
+    return `/blog/${year}/${month}/${day}/${slug}/`;
   }
   if (item.srcRelative.startsWith("workshops/")) {
     return `/services/workshops/${item.page.fileSlug}/`;
   }
   if (item.srcRelative.startsWith("twios/")) {
-    return (
-      "/this-week-in-open-source/" +
-      item.page.inputPath.replace(/(.+\/)(\d+)-(\d+)-(\d+)\..+/, "$2/$3/$4/").replace(".md", "/")
-    );
+    const [, year, month, day] = path
+      .basename(item.filePath, path.extname(item.filePath))
+      .match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return `/this-week-in-open-source/${year}/${month}/${day}/`;
   }
   return item.data.permalink;
 }
@@ -519,7 +517,7 @@ function normalizeUrl(url) {
     return url;
   }
   const [pathname, hash] = String(url).split("#");
-  if (path.extname(pathname)) {
+  if (!pathname.endsWith("/") && path.extname(pathname)) {
     const normalizedPathname = pathname.startsWith("/") ? pathname : `/${pathname}`;
     return normalizedPathname.replace(/\/{2,}/g, "/") + (hash ? `#${hash}` : "");
   }
@@ -531,7 +529,7 @@ function outputPathForUrl(outDir, url) {
   if (cleanUrl === "/404.html") {
     return path.join(outDir, "404.html");
   }
-  if (path.extname(cleanUrl)) {
+  if (!cleanUrl.endsWith("/") && path.extname(cleanUrl)) {
     return path.join(outDir, cleanUrl.replace(/^\//, ""));
   }
   return path.join(outDir, cleanUrl.replace(/^\//, ""), "index.html");
