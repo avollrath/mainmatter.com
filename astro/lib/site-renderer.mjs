@@ -49,17 +49,21 @@ export async function renderSite({ outDir }) {
   const globalData = loadGlobalData();
   const items = await loadItems(globalData);
   const collections = await buildCollections(items);
-  const memo = new Map(items.map(item => [item.fileSlug, item]));
+  const memo = new Map(items.map(item => [item.template.parsed.name, item]));
+  const imageJobs = [];
 
   const env = createEnvironment({
     collections,
     globalData,
+    imageJobs,
     memo,
     outDir: normalizedOutDir,
   });
 
   for (const item of items) {
-    item.content = await renderContent(item, env, collections, globalData);
+    item.content = item.data.pagination
+      ? ""
+      : await renderContent(item, env, collections, globalData);
   }
 
   const pages = createRenderPages(items, collections, globalData, env);
@@ -67,6 +71,8 @@ export async function renderSite({ outDir }) {
   for (const page of pages) {
     await writeRenderedPage(page, env, collections, globalData, normalizedOutDir);
   }
+
+  await Promise.all(imageJobs);
 }
 
 function loadGlobalData() {
@@ -194,7 +200,7 @@ async function buildCollections(items) {
   return collections;
 }
 
-function createEnvironment({ collections, globalData, memo, outDir }) {
+function createEnvironment({ collections, globalData, imageJobs, memo, outDir }) {
   const env = new nunjucks.Environment(new PreprocessedLoader([componentsDir, srcDir]), {
     autoescape: false,
     throwOnUndefined: false,
@@ -209,7 +215,7 @@ function createEnvironment({ collections, globalData, memo, outDir }) {
   env.addGlobal(
     "__imageShortcode",
     (imgPath, alt = "", sizes = "100vw", loading = "lazy", className = "", sizesArray) =>
-      renderImage({ imgPath, alt, sizes, loading, className, sizesArray, outDir })
+      renderImage({ imgPath, alt, sizes, loading, className, sizesArray, imageJobs, outDir })
   );
   env.addGlobal("__svgShortcode", svgPath => renderSvg(svgPath));
   env.addGlobal("inlineImage", imagePath => inlineImage(imagePath));
@@ -298,8 +304,9 @@ function createEnvironment({ collections, globalData, memo, outDir }) {
   return env;
 }
 
-async function renderContent(item, env, collections, globalData) {
-  const data = createTemplateData(item, collections, globalData);
+async function renderContent(item, env, collections, globalData, extraData = {}, url = item.url) {
+  const data = createTemplateData(item, collections, globalData, extraData);
+  data.page = { ...data.page, url };
   env.getGlobal("setActiveItem")(item);
   const rendered = env.renderString(preprocessMarkdownNotes(item.rawContent, env, data), data);
   if (item.filePath.endsWith(".md")) {
@@ -374,15 +381,16 @@ function createPagedPages(item, pagedItems, alias, collections, globalData, env)
 async function writeRenderedPage(page, env, collections, globalData, outDir) {
   const item = page.item;
   env.getGlobal("setActiveItem")(item);
-  const content = await renderContent(item, env, collections, globalData);
+  const content = await renderContent(item, env, collections, globalData, page.extraData, page.url);
   let data = createTemplateData(item, collections, globalData, page.extraData);
+  data.page = { ...data.page, url: page.url };
   data = deepMerge({}, collectLayoutData(data.layout), data);
   let rendered = await renderWithLayouts(content, data, env);
 
   const outputPath = outputPathForUrl(outDir, page.url);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   if (outputPath.endsWith(".html")) {
-    rendered = contentParser(rendered, outputPath);
+    rendered = await contentParser(rendered, outputPath);
   }
   fs.writeFileSync(outputPath, rendered);
 }
@@ -599,14 +607,8 @@ function parseNoteArgs(source) {
     .filter(Boolean);
 }
 
-function renderImage({ imgPath, alt, sizes, loading, className, sizesArray, outDir }) {
+function renderImage({ imgPath, alt, sizes, loading, className, sizesArray, imageJobs, outDir }) {
   const url = path.join(staticDir, imgPath);
-  if (!fs.existsSync(url)) {
-    // TODO: replace this fallback once all Eleventy data lookups map 1:1 in Astro.
-    return `<img src="${imgPath}" alt="${alt}"${className ? ` class="${className}"` : ""}${
-      loading ? ` loading="${loading}"` : ""
-    }>`;
-  }
   const fileType = path.extname(imgPath).replace(".", "");
   const directory = path.dirname(imgPath).replace(/\\/g, "/");
   const formats = ["webp", ...(fileType !== "gif" ? [fileType] : [])];
@@ -624,7 +626,7 @@ function renderImage({ imgPath, alt, sizes, loading, className, sizesArray, outD
     },
   };
   const stats = Image.statsSync(url, options);
-  Image(url, options);
+  imageJobs.push(Image(url, options));
   return Image.generateHTML(stats, {
     class: className,
     alt,

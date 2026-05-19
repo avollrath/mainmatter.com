@@ -5,7 +5,7 @@ const path = require("path");
 const config = require("../../src/_data/config.js");
 const Image = require("@11ty/eleventy-img");
 
-module.exports = function (value, outputPath) {
+module.exports = async function (value, outputPath) {
   if (outputPath && path.extname(outputPath) === ".html") {
     /**
      * Create the document model
@@ -88,9 +88,9 @@ module.exports = function (value, outputPath) {
      */
     const images = [...document.querySelectorAll("article img")];
     if (images.length) {
-      images.forEach(image => {
+      for (const image of images) {
         if (image.classList.length > 0) {
-          return;
+          continue;
         }
         const rawSrc = image.getAttribute("src");
         const alt = image.getAttribute("alt");
@@ -100,7 +100,7 @@ module.exports = function (value, outputPath) {
           imgClass = "";
 
         if (rawSrc.includes("https://") || rawSrc.includes("http://")) {
-          return;
+          continue;
         }
 
         if (!sizes) {
@@ -115,7 +115,8 @@ module.exports = function (value, outputPath) {
           img = JSDOM.fragment(
             `<video src="${imageData.src}" playsinline autoplay muted loop role="presentation">${alt}</video>`
           );
-          return image.replaceWith(img);
+          image.replaceWith(img);
+          continue;
         }
 
         let formats = ["webp", imageData.fileType];
@@ -142,7 +143,7 @@ module.exports = function (value, outputPath) {
           },
         };
         let stats = Image.statsSync(url, options);
-        Image(url, options);
+        await Image(url, options);
 
         let imageAttributes = {
           alt,
@@ -157,8 +158,8 @@ module.exports = function (value, outputPath) {
           newImage.firstElementChild.classList.add(imgClass);
         }
 
-        return image.replaceWith(newImage);
-      });
+        image.replaceWith(newImage);
+      }
     }
 
     // Unwrap our images
