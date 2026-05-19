@@ -34,3 +34,4 @@
 - Legacy route comparison: 456 Eleventy routes and 456 Astro routes, with no missing or extra routes.
 - Eleventy filters, shortcodes, collections, pagination, RSS, Atom, sitemap, and content transforms have Astro renderer equivalents.
 - Validation found no generated-route drift. Remaining local-looking missing refs are literal code examples in historical blog posts, not site navigation links.
+- Legacy Eleventy config, runtime plugins, and unused transforms were removed after Astro production build passed.

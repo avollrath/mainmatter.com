@@ -14,7 +14,6 @@ import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import slugify from "slugify";
 import { optimize } from "svgo";
 import Image from "@11ty/eleventy-img";
-import pluginRss from "@11ty/eleventy-plugin-rss";
 
 import contentParser from "../../utils/transforms/contentParser.js";
 
@@ -259,8 +258,8 @@ function createEnvironment({ collections, globalData, imageJobs, memo, outDir })
       .map(element => element.fileSlug)
   );
   env.addFilter("getCollectionKeys", collection => Object.keys(collection || {}));
-  env.addFilter("dateToRfc3339", pluginRss.dateToRfc3339);
-  env.addFilter("dateToRfc822", pluginRss.dateToRfc822);
+  env.addFilter("dateToRfc3339", date => new Date(date).toISOString());
+  env.addFilter("dateToRfc822", date => new Date(date).toUTCString());
   env.addFilter("urlExists", (url, collection) =>
     Boolean(collection?.find(({ page }) => page.url === url))
   );
