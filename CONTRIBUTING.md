@@ -3,11 +3,14 @@
 Make sure you have `node` and `pnpm` via [volta](https://volta.sh).
 
 ```sh
-# Launch local dev server with rebuilds for assets
-pnpm run watch
+# Build and launch local preview server
+pnpm run dev
 
 # Static build
-pnpm build
+pnpm run build
+
+# Astro diagnostics
+pnpm run check
 
 # Lint files
 pnpm run lint
